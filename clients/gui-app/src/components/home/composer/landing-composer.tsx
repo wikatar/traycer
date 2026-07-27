@@ -453,7 +453,6 @@ export function LandingComposer(props: LandingComposerProps) {
         reasoning: toolbar.reasoning,
         serviceTier: toolbar.serviceTier,
         permission: toolbar.permission,
-        agentMode: toolbar.agentMode,
       },
     });
   }, [actions, canSubmit, toolbarStore]);

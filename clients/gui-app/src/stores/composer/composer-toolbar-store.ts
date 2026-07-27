@@ -7,7 +7,6 @@ import {
   normalizePermissionMode,
   normalizeReasoningForModel,
   normalizeServiceTierForModel,
-  type AgentMode,
   type HarnessModelSelection,
   type HarnessOption,
   type ModelOption,
@@ -21,7 +20,7 @@ import { sortGuiHarnessesByProviderOrder } from "@/lib/provider-ordering";
 import { Analytics, AnalyticsEvent } from "@/lib/analytics";
 
 /**
- * Per-composer toolbar state (model/permission/reasoning/tier/agent-mode).
+ * Per-composer toolbar state (model/permission/reasoning/tier).
  *
  * One store instance is created per composer surface (held in `useState`,
  * mirroring `createComposerPickerStore`), so toggling model / provider /
@@ -49,7 +48,6 @@ export interface ComposerToolbarValues {
   readonly selection: HarnessModelSelection;
   readonly reasoning: ReasoningLevel;
   readonly serviceTier: ServiceTier;
-  readonly agentMode: AgentMode;
 }
 
 export interface ComposerToolbarCatalog {
@@ -94,7 +92,6 @@ interface ComposerToolbarDerived {
   readonly permission: PermissionMode;
   readonly reasoning: ReasoningLevel;
   readonly serviceTier: ServiceTier;
-  readonly agentMode: AgentMode;
   /** Permission modes the selected harness honors; `null` while the catalog
    *  is loading or the harness is unknown (picker keeps every option enabled). */
   readonly supportedPermissionModes: ReadonlyArray<PermissionMode> | null;
@@ -144,7 +141,6 @@ export interface ComposerToolbarActions {
   readonly applyComposerSelection: (input: ApplyComposerSelectionInput) => void;
   readonly setReasoning: (next: ReasoningLevel) => void;
   readonly setServiceTier: (next: ServiceTier) => void;
-  readonly setAgentMode: (next: AgentMode) => void;
   /**
    * Replace the raw values when the seed identity changes (draft swap,
    * settings restored from persistence). No-op when `seedKey` matches the
@@ -254,9 +250,6 @@ export function createComposerToolbarStore(
       setServiceTier: (next) => {
         update({ serviceTier: next });
       },
-      setAgentMode: (next) => {
-        update({ agentMode: next });
-      },
 
       applySeed: (seedKey, values) => {
         const state = get();
@@ -305,7 +298,6 @@ function settingsFromDerived(derived: ComposerToolbarDerived): ChatRunSettings {
     // site shared with the picker display); the codex-adapter still re-filters
     // on the wire as defense-in-depth.
     serviceTier: derived.serviceTier,
-    agentMode: derived.agentMode,
   });
 }
 
@@ -386,7 +378,6 @@ function deriveToolbarState(
       values.serviceTier,
       selectedModel,
     ),
-    agentMode: values.agentMode,
     supportedPermissionModes,
     harnessLabel: selectedHarness?.label ?? null,
     selectionCatalogConfirmed,

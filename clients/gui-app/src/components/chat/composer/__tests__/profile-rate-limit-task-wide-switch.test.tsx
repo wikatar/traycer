@@ -368,7 +368,6 @@ describe("rate-limit banner task-wide switch", () => {
         },
         reasoning: "high",
         serviceTier: "",
-        agentMode: "regular",
       },
       onSettingsChange: null,
       tuiOnly: false,

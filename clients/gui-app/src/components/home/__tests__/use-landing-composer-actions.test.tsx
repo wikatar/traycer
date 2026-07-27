@@ -276,7 +276,6 @@ describe("useLandingComposerActions", () => {
     act(() => {
       result.current.selectTerminalAgent({
         harnessId: "claude",
-        agentMode: "regular",
         model: null,
         reasoningEffort: null,
         terminalAgentArgs: "",
@@ -324,7 +323,6 @@ describe("useLandingComposerActions", () => {
     act(() => {
       result.current.selectTerminalAgent({
         harnessId: "claude",
-        agentMode: "regular",
         model: null,
         reasoningEffort: null,
         terminalAgentArgs: "",

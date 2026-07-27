@@ -514,7 +514,6 @@ describe("agent.listProviderProfiles / agent.getProviderProfileRateLimits / agen
           reasoningEffort: "high",
           fastMode: false,
           permissionMode: "supervised",
-          agentMode: "regular",
         },
         warnings: [],
       }),
@@ -529,7 +528,6 @@ describe("agent.listProviderProfiles / agent.getProviderProfileRateLimits / agen
           reasoningEffort: null,
           fastMode: false,
           permissionMode: "supervised",
-          agentMode: "regular",
         },
         warnings: [],
       }).success,
@@ -1019,5 +1017,85 @@ describe("agent.configure v1 <-> v2 hermes-harness response translation", () => 
     expect(downgraded.ok).toBe(false);
     if (downgraded.ok) return;
     expect(downgraded.error.code).toBe("DOWNGRADE_UNSUPPORTED");
+  });
+});
+
+describe("Epic Mode removal — agentMode across the configure/create bridges", () => {
+  const LIVE_RESPONSE = {
+    settings: {
+      harnessId: "claude" as const,
+      model: "opus-4.7",
+      profileSelection: { kind: "profile" as const, profileId: "profile-1" },
+      reasoningEffort: "high",
+      fastMode: false,
+      permissionMode: "supervised" as const,
+    },
+    warnings: [],
+  };
+
+  it("drops agentMode from the live configure settings tuple", () => {
+    const parsed = agentConfigureResponseSchema.parse(LIVE_RESPONSE);
+    expect(parsed.settings).not.toHaveProperty("agentMode");
+  });
+
+  // The frozen v1.0 / v2.0 wires still REQUIRE the field. Without the bridge
+  // restating it, every downgrade would fail closed on a missing field rather
+  // than on a real incompatibility - i.e. released clients would lose
+  // `agent.configure` entirely rather than gain a mode-free response.
+  // Only the v3 bridges see the live (mode-free) response. Without the
+  // restatement they would fail closed on a missing field rather than on a
+  // real incompatibility - i.e. released clients would lose `agent.configure`
+  // outright rather than gain a mode-free response.
+  it.each([
+    ["v3.0 -> v2.0", agentConfigureDowngradeV30ToV20],
+    ["v3.0 -> v1.0", agentConfigureDowngradeV30ToV10],
+  ])(
+    "restates agentMode: regular on the frozen %s response",
+    (_label, bridge) => {
+      const result = bridge.downgradeResponse(LIVE_RESPONSE);
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.settings.agentMode).toBe("regular");
+    },
+  );
+
+  // The v2 -> v1 bridge is deliberately NOT a restatement site: its input is
+  // the frozen v2.0 response, which still carries the field, so injecting
+  // would clobber what the v2.0 wire actually said.
+  it("passes the frozen v2.0 response's own agentMode through to v1.0", () => {
+    const result = agentConfigureDowngradeV20ToV10.downgradeResponse({
+      settings: { ...LIVE_RESPONSE.settings, agentMode: "epic" as const },
+      warnings: [],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.settings.agentMode).toBe("epic");
+  });
+
+  // v3.0 is itself released (v1.1.8), so a current client and a v1.1.8 host
+  // both negotiate 3.0 with NO bridge between them. The key must survive the
+  // upgrade or that host rejects the request outright.
+  it("keeps agentMode on the released v3.0 create request", () => {
+    const upgraded = agentCreateUpgradeV20ToV30.upgradeRequest(
+      createAgentRequestSchemaV20.parse({
+        senderAgentId: "agent-1",
+        epicId: "epic-1",
+        name: null,
+        surface: "gui",
+        harnessId: "claude",
+        model: null,
+        agentMode: "regular",
+        reasoningEffort: null,
+        fastMode: null,
+        workspace: null,
+        profileSelection: { kind: "ambient" },
+      }),
+    );
+
+    expect(createAgentRequestSchemaV30.safeParse(upgraded).success).toBe(true);
+    expect(upgraded.agentMode).toBe("regular");
+    expect(upgraded.permissionMode).toBeNull();
   });
 });

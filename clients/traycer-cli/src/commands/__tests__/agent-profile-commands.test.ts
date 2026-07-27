@@ -82,7 +82,6 @@ function createOpts(profile: string | null) {
     surface: "gui",
     harness: "codex",
     model: null,
-    agentMode: null,
     reasoningEffort: null,
     fast: false,
     permissionMode: null,
@@ -339,7 +338,6 @@ describe("agent configure", () => {
       reasoningEffort: "high",
       fastMode: false,
       permissionMode: "supervised",
-      agentMode: "regular",
     },
     warnings: ["Fast mode is not available for 'gpt-5.6-codex'."],
   };
@@ -491,7 +489,8 @@ describe("version skew", () => {
       surface: "gui",
       harnessId: "codex",
       model: null,
-      agentMode: null,
+      // v3.0 is released, so its request still requires the field.
+      agentMode: "regular",
       reasoningEffort: null,
       fastMode: null,
       permissionMode: "full_access",

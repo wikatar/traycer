@@ -433,7 +433,6 @@ function ComposerSurface(props: {
           <ReadOnlyComposerNotice />
           <ComposerReadonlyWorkspaceModeRow
             workspaceSlot={model.composer.workspaceControls}
-            agentMode={model.composer.sessionSettingsSeed?.agentMode ?? null}
           />
         </div>
       </ComposerSlotShell>

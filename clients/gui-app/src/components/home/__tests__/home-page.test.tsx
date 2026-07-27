@@ -179,7 +179,6 @@ vi.mock("@/components/home/composer/landing-composer", () => ({
           reasoning: "high",
           serviceTier: "",
           permission: "supervised",
-          agentMode: "regular",
         },
       });
     };

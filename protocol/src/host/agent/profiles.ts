@@ -512,7 +512,6 @@ export const agentConfigureSettingsSchema = z.object({
   reasoningEffort: z.string().nullable(),
   fastMode: z.boolean(),
   permissionMode: permissionModeSchema,
-  agentMode: agentModeSchema,
 });
 export type AgentConfigureSettings = z.infer<
   typeof agentConfigureSettingsSchema
@@ -649,6 +648,10 @@ export const agentConfigureDowngradeV20ToV10 = defineDowngradePath<
     // on the frozen v1.0 wire, so this fails closed instead of silently
     // mis-decoding it. The message names no single harness so it stays honest
     // as the enum grows.
+    //
+    // No `agentMode` restatement here, unlike the v3 bridges below: this
+    // bridge's INPUT is the frozen v2.0 response, which still carries the
+    // field. Injecting would clobber whatever the v2.0 wire actually said.
     const parsed = agentConfigureResponseSchemaV1.safeParse(response);
     if (!parsed.success) {
       return {
@@ -693,7 +696,16 @@ export const agentConfigureDowngradeV30ToV20 = defineDowngradePath<
     // (unreachable from a v2.0 REQUEST today, but this bridge must still hold
     // if that ever changes) cannot be represented on the frozen v2.0 wire, so
     // this fails closed instead of silently mis-decoding it.
-    const parsed = agentConfigureResponseSchemaV2.safeParse(response);
+    // Epic Mode was removed from the product, so the live settings tuple no
+    // longer carries `agentMode` - but the frozen wire below still requires
+    // it. Restate the one remaining mode so an already-shipped caller keeps
+    // decoding; without this every downgrade would fail closed on a missing
+    // field rather than on a real incompatibility.
+    const withAgentMode = {
+      ...response,
+      settings: { ...response.settings, agentMode: "regular" as const },
+    };
+    const parsed = agentConfigureResponseSchemaV2.safeParse(withAgentMode);
     if (!parsed.success) {
       return {
         ok: false,
@@ -727,7 +739,16 @@ export const agentConfigureDowngradeV30ToV10 = defineDowngradePath<
   downgradeResponse: (response) => {
     // Fails closed for any post-v4.0 harness (Hermes, omp) - see the v2->v1
     // bridge above for the full reasoning.
-    const parsed = agentConfigureResponseSchemaV1.safeParse(response);
+    // Epic Mode was removed from the product, so the live settings tuple no
+    // longer carries `agentMode` - but the frozen wire below still requires
+    // it. Restate the one remaining mode so an already-shipped caller keeps
+    // decoding; without this every downgrade would fail closed on a missing
+    // field rather than on a real incompatibility.
+    const withAgentMode = {
+      ...response,
+      settings: { ...response.settings, agentMode: "regular" as const },
+    };
+    const parsed = agentConfigureResponseSchemaV1.safeParse(withAgentMode);
     if (!parsed.success) {
       return {
         ok: false,

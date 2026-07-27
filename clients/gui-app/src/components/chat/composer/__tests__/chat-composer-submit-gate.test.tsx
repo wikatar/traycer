@@ -49,7 +49,6 @@ describe("chat-composer submit gate (path resolution)", () => {
         },
         reasoning: "medium",
         serviceTier: "",
-        agentMode: "regular",
       },
       onSettingsChange: null,
       tuiOnly: false,

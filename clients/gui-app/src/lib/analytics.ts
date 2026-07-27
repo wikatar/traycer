@@ -181,7 +181,6 @@ export type AnalyticsSetting =
   | "codeFontFamily"
   | "codeFontSize"
   | "composerMode"
-  | "defaultAgentMode"
   | "defaultEditor"
   | "defaultPermission"
   | "defaultReasoning"
@@ -546,7 +545,6 @@ export interface AnalyticsEventProperties {
   readonly [AnalyticsEvent.ChatOpened]: SourceProperties;
   readonly [AnalyticsEvent.ChatMessageSent]: {
     readonly harness: AnalyticsHarness;
-    readonly mode: "epic" | "regular";
   };
   readonly [AnalyticsEvent.ChatMessageEdited]: null;
   readonly [AnalyticsEvent.ChatMessageSuffixDeleted]: null;
@@ -891,7 +889,6 @@ const ANALYTICS_SETTINGS = new Set<string>([
   "codeFontFamily",
   "codeFontSize",
   "composerMode",
-  "defaultAgentMode",
   "defaultEditor",
   "defaultPermission",
   "defaultReasoning",
@@ -1141,7 +1138,7 @@ const EVENT_PROPERTY_KEYS = new Map<AnalyticsEvent, ReadonlyArray<string>>([
     ["requested_count", "succeeded_count", "failed_count"],
   ),
   ...eventKeyEntries([AnalyticsEvent.SetupScriptsSaved], ["script_count"]),
-  ...eventKeyEntries([AnalyticsEvent.ChatMessageSent], ["harness", "mode"]),
+  ...eventKeyEntries([AnalyticsEvent.ChatMessageSent], ["harness"]),
   ...eventKeyEntries(
     [AnalyticsEvent.ChatForked],
     ["source", "include_history"],
@@ -1380,11 +1377,6 @@ const EVENT_EXACT_PROPERTY_VALUES = new Map<string, ReadonlySet<string>>([
     ],
     "mode",
     new Set(["chat", "terminal_agent"]),
-  ),
-  ...eventValueEntries(
-    [AnalyticsEvent.ChatMessageSent],
-    "mode",
-    new Set(["epic", "regular"]),
   ),
   ...eventValueEntries(
     [AnalyticsEvent.HostSetupStarted, AnalyticsEvent.HostSetupSucceeded],

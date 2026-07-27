@@ -212,7 +212,6 @@ export function formatAgentConfigureResponse(
     `reasoningEffort: ${settings.reasoningEffort ?? "-"}`,
     `fastMode: ${settings.fastMode ? "on" : "off"}`,
     `permissionMode: ${settings.permissionMode}`,
-    `agentMode: ${settings.agentMode}`,
   ];
   if (response.warnings.length === 0) return lines.join("\n");
   return `${lines.join("\n")}
